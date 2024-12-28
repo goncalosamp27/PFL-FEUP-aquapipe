@@ -47,14 +47,50 @@ slot_visual(empty, 'E').   % Empty slots are displayed as 'E';
 slot_visual(blue, 'B').    % Player 1 pieces are displayed as 'B';
 slot_visual(red, 'R').     % Player 2 pieces are displayed as 'R';
 
-% Display all valid moves for the current player;
+% Display all valid moves, separating "place" and "move" moves;
+display_moves([]) :-
+    write('No moves are available.'), nl.
+
 display_moves(Moves) :-
-    display_moves(Moves, 1).  
+    % Debug: Display all moves
+
+    % Separate the moves into "place" and "move" categories;
+    include(is_place_move, Moves, PlaceMoves),
+    include(is_move_move, Moves, MoveMoves),
+
+    % Debug: Display separated moves;
+
+    % Display "place" moves;
+    (PlaceMoves \= [] ->
+        (write('Place a New Piece - Moves:'), nl,
+         display_moves_list(PlaceMoves, 1, NextIndex))
+    ;
+        (write('You can not place any more pieces.'), nl,
+         NextIndex = 1)
+    ),
+
+    % Display "move" moves;
+    (MoveMoves \= [] ->
+        (write('Move an existing Piece Moves:'), nl,
+         display_moves_list(MoveMoves, NextIndex, _))
+    ;
+        write('You can not move any pieces.'), nl
+    ).
+
+
+% Check if a move is a "place" move;
+is_place_move([place, _, _, _]).
+
+% Check if a move is a "move" move;
+is_move_move([move, _, _, _, _, _]).
+
 % Base case: No more moves to display;
-display_moves([], _) :- 
-    write(''), nl.
+display_moves_list([], Index, Index).
+
 % Recursive case: Display a move with its index;
-display_moves([Move | Rest], Index) :-
-    format("~w: ~w~n", [Index, Move]),  % Display the index and move;
-    NextIndex is Index + 1,             % Increment the index;
-    display_moves(Rest, NextIndex).     % Recur for the remaining moves;
+display_moves_list([Move | Rest], Index, FinalIndex) :-
+    format("~w: ~w~n", [Index, Move]),
+    NextIndex is Index + 1,
+    display_moves_list(Rest, NextIndex, FinalIndex).
+
+

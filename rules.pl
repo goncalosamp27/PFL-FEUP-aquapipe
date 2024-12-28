@@ -6,16 +6,21 @@ valid_place(small, red).
 valid_place(medium, red).
 valid_place(large, red).
 
-% can_move_pieces(+Player, +PlayerProgress)
-can_move_pieces(player1, progress(Player1Progress, _)) :-
-    member(small, Player1Progress),
-    member(medium, Player1Progress),
-    member(large, Player1Progress).
+can_move_pieces(Player, Board) :-
+    write("DEBUG: Checking if player can move pieces: "), write(Player), nl,
+    findall(Size, 
+        (member(cell(_, _, Slots), Board),
+         member(slot(Size, PlayerColor), Slots),
+         player_color(Player, PlayerColor)),
+        Sizes),
+    write("DEBUG: Sizes Found: "), write(Sizes), nl,
+    subset([small, medium, large], Sizes).
 
-can_move_pieces(player2, progress(_, Player2Progress)) :-
-    member(small, Player2Progress),
-    member(medium, Player2Progress),
-    member(large, Player2Progress).
+subset([], _). % An empty list is a subset of any list;
+subset([H|T], List) :-
+    member(H, List), % Check if H is in List;
+    subset(T, List). % Recursive call for the rest of the elements;
+
 
 % Check if a specific piece exists on the board
 has_piece(Board, Piece) :-

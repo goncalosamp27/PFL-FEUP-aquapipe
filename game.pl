@@ -60,7 +60,7 @@ game_cycle(GameState) :-
         display_moves(Moves),
         choose_move(Moves, ChosenMove),
         move(GameState, ChosenMove, NewGameState),
-        write("Move executed successfully."), nl,
+        write('Move executed successfully.'), nl,
         game_cycle(NewGameState)             
     ).
 

@@ -3,25 +3,30 @@
 
 % Generate all valid moves for the current player;
 valid_moves(state(Board, _, CurrentPlayer, _), Moves) :-
-    % Generate all valid "place" moves (placing a new piece on the board); 
+    % Debug: Start of predicate;
+
+    % Generate all valid "place" moves (placing a new piece on the board)
     findall([place, X, Y, Size],
-            (member(cell(X, Y, Slots), Board),         % Iterate through the cells;
-             member(slot(Size, empty), Slots),         % Check if the slot is empty;
-             player_color(CurrentPlayer, PlayerColor), % Get the players color;
-             valid_place(Size, PlayerColor)),          % Validate the piece (e.g., slot(small, blue));
+            (member(cell(X, Y, Slots), Board),
+             member(slot(Size, empty), Slots),
+             player_color(CurrentPlayer, PlayerColor),
+             valid_place(Size, PlayerColor)),
             PlaceMoves),
 
-    % Generate all valid "move" moves if the player can move pieces;
+    % Debug: Place moves
+
+    % Generate all valid "move" moves if the player can move pieces
     (can_move_pieces(CurrentPlayer, Board) ->
         findall([move, X1, Y1, Size, X2, Y2],
-                (member(cell(X1, Y1, Slots1), Board),     % Source cell;
-                 member(slot(Size, PlayerColor), Slots1), % Check if the slot contains the players piece;
-                 member(cell(X2, Y2, Slots2), Board),     % Target cell;
-                 member(slot(Size, empty), Slots2)),      % Ensure the target slot is empty;
+                (member(cell(X1, Y1, Slots1), Board),     % Source cell
+                 member(slot(Size, PlayerColor), Slots1), % Ensure the slot contains the players piece
+                 member(cell(X2, Y2, Slots2), Board),     % Target cell
+                 (X1 \= X2; Y1 \= Y2),                    % Ensure the source and target are different
+                 member(slot(Size, empty), Slots2)),      % Ensure the target slot is empty
                 MoveMoves)
     ; MoveMoves = []),
 
-    % Combine both types of moves;
+    % Combine both types of moves
     append(PlaceMoves, MoveMoves, Moves).
 
 % move(+GameState, +Move, -NewGameState)
