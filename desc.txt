@@ -1,0 +1,33 @@
+Aqua Pipe -> 4 em linha avançado: (https://boardgamegeek.com/video/510202/aqua-pipe/aqua-pipe-4-in-a-row)
+
+Board 4 por 4:
+- cada posição tem 3 slots disponíveis, 1 grande, 1 médio e 1 pequeno;
+
+Winning conditions (falta fazer):
+	Das duas uma:
+		- 4 linhas de 3 da mesma cor e tamanho
+		- 1 linha de 4 da mesma cor e tamanho
+		(incluir diagonais)
+
+Falta implementar:
+	1 - Logica das bridges (na horizontal e na vertical)
+		- limitar a existencia de apenas 1 bridge média e uma pequena por jogador
+		- bloquear a colocaçao de outras peças quando existe uma bridge dentro de uma cell
+	2 - criar as winning conditions e adicionar essa logica a funcao game over
+	3 - implementar o jogo para as AI's
+	4 - documentar e fazer PDF
+	5 - (não obrigatório mas era nice -> Neste momento ta tipo [L,M,S,S,M,L])
+		Idealmente representar cada posiçao assim (com as respetivas cores):
+			L L L L L
+			L M M M L 
+			L M S M L 
+			L M M M L 
+			L L L L L 
+
+		Por exemplo [small_blue, medium_empty, large_red] ficaria
+			R R R R R
+			R E E E R 
+			R E B E R 
+			R E E E R 
+			R R R R R 
+	6 - moves de switch (pode-se mover uma peça que já esteja no board desde que já se tenha colocado 1 de cada tamanho previamente)
