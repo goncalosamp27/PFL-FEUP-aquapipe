@@ -17,14 +17,15 @@ valid_moves(state(Board, _, CurrentPlayer, _), Moves) :-
 
     % Generate all valid "move" moves if the player can move pieces
     (can_move_pieces(CurrentPlayer, Board) ->
-        findall([move, X1, Y1, Size, X2, Y2],
-                (member(cell(X1, Y1, Slots1), Board),     % Source cell
-                 member(slot(Size, PlayerColor), Slots1), % Ensure the slot contains the players piece
-                 member(cell(X2, Y2, Slots2), Board),     % Target cell
-                 (X1 \= X2; Y1 \= Y2),                    % Ensure the source and target are different
-                 member(slot(Size, empty), Slots2)),      % Ensure the target slot is empty
-                MoveMoves)
-    ; MoveMoves = []),
+    findall([move, X1, Y1, Size, X2, Y2],
+            (member(cell(X1, Y1, Slots1), Board),          % Source cell
+             player_color(CurrentPlayer, PlayerColor),     % Get the player's color
+             member(slot(Size, PlayerColor), Slots1),      % Ensure the slot contains the player's piece
+             member(cell(X2, Y2, Slots2), Board),          % Target cell
+             (X1 \= X2; Y1 \= Y2),                         % Ensure the source and target are different
+             member(slot(Size, empty), Slots2)),           % Ensure the target slot is empty
+            MoveMoves)
+; MoveMoves = []).
 
     % Combine both types of moves
     append(PlaceMoves, MoveMoves, Moves).
