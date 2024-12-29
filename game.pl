@@ -82,7 +82,5 @@ choose_move(Moves, ChosenMove) :-
     write('Invalid choice. Please try again.'), nl,
     choose_move(Moves, ChosenMove).          
 
-% === EDITAR MAIS TARDE - CHECKAR AS WINNING CONDITIONS ===;
-% Placeholder: Check if the game is over;
-game_over(GameState, Winner) :- fail. 
+
 

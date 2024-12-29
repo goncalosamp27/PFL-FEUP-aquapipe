@@ -18,7 +18,7 @@ display_game(state(Board, _, CurrentPlayer, _)) :-
 display_board(Board) :-
     write('Game Board:'), nl,
     write('+--------------------+--------------------+--------------------+--------------------+'), nl,
-    group_rows(Board, 4, Rows), % Group cells into rows of 4;
+    group_rows(Board, 3, Rows), % Group cells into rows of 4;
     process_rows(Rows).
 
 % process each row (adding a separator);
@@ -69,6 +69,7 @@ display_moves(Moves) :-
          NextIndex = 1)
     ),
 
+    write(''), nl,
     % Display "move" moves;
     (MoveMoves \= [] ->
         (write('Move an existing Piece Moves:'), nl,

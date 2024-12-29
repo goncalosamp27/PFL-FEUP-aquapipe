@@ -5,7 +5,7 @@
 % generates all cells from (1,1) -> (4,4) with 3 empty slots in each;
 
 initialize_board(Board) :-
-    findall(cell(X, Y, [slot(small, empty), slot(medium, empty), slot(large, empty)]),(between(1, 4, X), between(1, 4, Y)), Board).
+    findall(cell(X, Y, [slot(small, empty), slot(medium, empty), slot(large, empty)]),(between(1, 3, X), between(1, 3, Y)), Board).
 
 % Create the initial game state:
 % - create the Board where the game will be played;
