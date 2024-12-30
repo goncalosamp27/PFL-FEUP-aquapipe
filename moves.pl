@@ -1,29 +1,38 @@
 % moves.pl
-% Handles generating valid moves, executing moves, and updating the game state;
+% Handles generating valid moves, executing moves, and updating the game state
 
-% Generate all valid moves for the current player;
-valid_moves(state(Board, _, CurrentPlayer, _), Moves) :-
-    % Place moves
+% Check if a player has already placed 3 pieces of a given size
+has_max_pieces(Size, Progress) :-
+    findall(Size, member(Size, Progress), PlacedPieces),
+    length(PlacedPieces, 3).  % Changed from Count >= 3 to exactly 3
+
+% Generate all valid moves for the current player
+valid_moves(state(Board, _, CurrentPlayer, progress(Player1Progress, Player2Progress)), Moves) :-
+    % Determine which progress list to use based on current player
+    (CurrentPlayer = player1 -> CurrentProgress = Player1Progress
+    ; CurrentProgress = Player2Progress),
+    
+    % Place moves - only if player hasn't used all pieces of that size
     findall([place, X, Y, Size],
             (member(cell(X, Y, Slots), Board),
              member(slot(Size, empty), Slots),
-             player_color(CurrentPlayer, PlayerColor)),
+             player_color(CurrentPlayer, PlayerColor),
+             valid_place(Size, PlayerColor),
+             \+ has_max_pieces(Size, CurrentProgress)),
             PlaceMoves),
 
-    % Move moves
-    (can_move_pieces(CurrentPlayer, Board) ->
-        findall([move, X1, Y1, Size, X2, Y2],
-                (member(cell(X1, Y1, Slots1), Board),
-                 member(slot(Size, PlayerColor), Slots1),
-                 player_color(CurrentPlayer, PlayerColor),
-                 member(cell(X2, Y2, Slots2), Board),
-                 (X1 \= X2; Y1 \= Y2),
-                 member(slot(Size, empty), Slots2)),
-                MoveMoves)
-    ; MoveMoves = []),
+    % Move moves - only if player has exactly 3 pieces of a size
+    findall([move, X1, Y1, Size, X2, Y2],
+            (member(cell(X1, Y1, Slots1), Board),
+             player_color(CurrentPlayer, PlayerColor),
+             member(slot(Size, PlayerColor), Slots1),  % Find player's piece
+             has_max_pieces(Size, CurrentProgress),    % Check for exactly 3 pieces
+             member(cell(X2, Y2, Slots2), Board),
+             member(slot(Size, empty), Slots2),       % Find empty slot of same size
+             (X1 \= X2; Y1 \= Y2)),                   % Different position
+            MoveMoves),
 
     append(PlaceMoves, MoveMoves, Moves).
-
 
 % === EXECUTE MOVES ===
 % move(+GameState, +Move, -NewGameState)
@@ -62,51 +71,29 @@ update_slot_list([Slot|Rest], Size, PlayerColor, [Slot|UpdatedRest]) :-
     update_slot_list(Rest, Size, PlayerColor, UpdatedRest).                                % Keep other slots unchanged
 update_slot_list([], _, _, []).                                                            % Base case: Empty list
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
-%execute_move_piece(+GameState, +X1, +Y1, +Size, +X2, +Y2, -NewGameState)
-%execute_move_piece(state(Board, Config, CurrentPlayer, PlayerProgress), X1, Y1, Size, X2, Y2, state(NewBoard, Config, NextPlayer, PlayerProgress)) :-
-%    move_piece(Board, X1, Y1, X2, Y2, Size, NewBoard), % Move the piece
-%    next_player(CurrentPlayer, NextPlayer).           % Switch to the next player
-%
-%% move_piece(+Board, +X1, +Y1, +X2, +Y2, +Size, -NewBoard)
-%move_piece(Board, X1, Y1, X2, Y2, Size, NewBoard) :-
-%    maplist(update_source_and_target(X1, Y1, X2, Y2, Size), Board, NewBoard).
-%
-%% update_source_and_target(+SourceX, +SourceY, +TargetX, +TargetY, +Size, +PlayerColor, +Cell, -UpdatedCell)
-%
-%% Case: Source cell - empty the specified slot
-%update_source_and_target(SourceX, SourceY, TargetX, TargetY, Size, PlayerColor,cell(SourceX, SourceY, Slots),cell(SourceX, SourceY, UpdatedSlots)) :-
-%    write('Emptying Source: '), write(SourceX), write(','), write(SourceY), nl,
-%    write('Before: '), write(Slots), nl,
-%    update_slot_list(Slots, Size, empty, UpdatedSlots),
-%    write('After: '), write(UpdatedSlots), nl.
-%
-%% Case: Target cell - fill the specified slot with player's color
-%update_source_and_target(SourceX, SourceY, TargetX, TargetY, Size, PlayerColor,cell(TargetX, TargetY, Slots), cell(TargetX, TargetY, UpdatedSlots)) :-
-%    write('Filling Target: '), write(TargetX), write(','), write(TargetY), nl,
-%    write('Before: '), write(Slots), nl,
-%    update_slot_list(Slots, Size, PlayerColor, UpdatedSlots),
-%    write('After: '), write(UpdatedSlots), nl.
-%
-%% Case: Leave all other cells unchanged
-%update_source_and_target(_, _, _, _, _, _, Cell, Cell).
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+execute_move_piece(state(Board, Config, CurrentPlayer, PlayerProgress), X1, Y1, Size, X2, Y2, state(NewBoard, Config, NextPlayer, PlayerProgress)) :-
+    player_color(CurrentPlayer, Color),
+    % First, create intermediate board with source piece removed
+    maplist(update_cell_source(X1, Y1, Size), Board, IntermediateBoard),
+    % Then, update target cell with the piece
+    maplist(update_cell_target(X2, Y2, Size, Color), IntermediateBoard, NewBoard),
+    next_player(CurrentPlayer, NextPlayer).
+
+% Update source cell - remove the piece
+update_cell_source(X, Y, Size, cell(X, Y, Slots), cell(X, Y, UpdatedSlots)) :-
+    % Update the slot list to set the specified size to empty
+    update_slot_list(Slots, Size, empty, UpdatedSlots).
+update_cell_source(_, _, _, Cell, Cell).  % Keep other cells unchanged
+
+% Update target cell - place the piece
+update_cell_target(X, Y, Size, Color, cell(X, Y, Slots), cell(X, Y, UpdatedSlots)) :-
+    % Update the slot list to set the specified size to the player's color
+    update_slot_list(Slots, Size, Color, UpdatedSlots).
+update_cell_target(_, _, _, _, Cell, Cell).  % Keep other cells unchanged
 
 % update_progress(+Player, +Size, +PlayerProgress, -NewProgress)
 update_progress(player1, Size, progress(Player1Progress, Player2Progress),
-                progress(NewPlayer1Progress, Player2Progress)) :-
-    (member(Size, Player1Progress) -> % If size is already in progress, no update
-        NewPlayer1Progress = Player1Progress
-    ;
-        NewPlayer1Progress = [Size | Player1Progress]).
+                progress([Size | Player1Progress], Player2Progress)).
 
 update_progress(player2, Size, progress(Player1Progress, Player2Progress),
-                progress(Player1Progress, NewPlayer2Progress)) :-
-    (member(Size, Player2Progress) -> % If size is already in progress, no update
-        NewPlayer2Progress = Player2Progress
-    ;
-        NewPlayer2Progress = [Size | Player2Progress]).
+                progress(Player1Progress, [Size | Player2Progress])).

@@ -2,7 +2,7 @@
 
 group_rows([], _, []).                    % Base case: If the board is empty, there are no rows;
 group_rows(Board, RowSize, [Row|Rows]) :-
-    length(Row, RowSize),                 % Take the first RowSize elements;
+    length(Row, RowSize),                 % Get the row size;
     append(Row, Rest, Board),             % Split the board into the current row and the rest;
     group_rows(Rest, RowSize, Rows).      % Recur for the remaining cells;
 
@@ -11,21 +11,20 @@ display_game(state(Board, _, CurrentPlayer, _)) :-
     write(''), nl,
     write('Current Game Board:'), nl,
     display_board(Board),
-    format('Player: ~w~n', [CurrentPlayer]),
-    write(''), nl.
+    format('Player: ~w~n', [CurrentPlayer]), nl.
 
 % Display the board as a grid
 display_board(Board) :-
     write('Game Board:'), nl,
-    write('+--------------------+--------------------+--------------------+--------------------+'), nl,
-    group_rows(Board, 3, Rows), % Group cells into rows of 4;
+    write('+-----------+-----------+-----------+'), nl,
+    group_rows(Board, 3, Rows), % Group cells into rows of 3
     process_rows(Rows).
 
 % process each row (adding a separator);
 process_rows([]).                                                   % Base case: No more rows to process;
 process_rows([Row|Rest]) :-
     display_row(Row),                                               % Display the current row;
-    write('+--------------------+--------------------+--------------------+--------------------+'), nl, % Print separator;
+    write('+-----------+-----------+-----------+'), nl, % Print separator;
     process_rows(Rest).                                             % Recur for the remaining rows;
 
 % Display a single row with all slots.
@@ -33,7 +32,7 @@ display_row([]) :-                                           % End the row with 
     write('|'), nl. 
 display_row([cell(_, _, Slots)|Rest]) :-
     cell_content(Slots, [S, M, L]),                          % Get the content of the slots;
-    format('| [~w, ~w, ~w, ~w, ~w, ~w] ', [L, M, S, S, M, L]),                    % Display the slots;
+    format('| [~w, ~w, ~w] ', [S, M, L]),                    % Display the slots;
     display_row(Rest).                                       % Recur for the remaining cells;
 
 % Map the slots to their visual representation;
@@ -79,13 +78,13 @@ display_moves(Moves) :-
     ).
 
 
-% Check if a move is a "place" move;
+% Check if a move is a "place" move
 is_place_move([place, _, _, _]).
 
-% Check if a move is a "move" move;
+% Check if a move is a "move" move
 is_move_move([move, _, _, _, _, _]).
 
-% Base case: No more moves to display;
+% Base case: No more moves to display
 display_moves_list([], Index, Index).
 
 % Recursive case: Display a move with its index;
