@@ -7,7 +7,7 @@
 :- use_module(library(lists)).
 
 % Include the other .pl files
-:- [display, moves, rules, state]. 
+:- [display, moves, rules, state, ai]. 
 
 % Entry point of the game
 play :-
@@ -45,7 +45,7 @@ coin_toss(Player) :-
 % Read the configuration
 read_configuration(GameConfig) :-
     read(Option), % Reads the input and stores it in Option variable
-    (configure_game(Option, GameConfig) -> % If there is a valid game configuration
+    (configure_game(Option, GameConfig) -> % If there is a valid game configuration unification
         (GameConfig = quit -> write('Goodbye!'), nl, halt; % When GameConfig is quit, print 'Goodbye!' and quit the game
          GameConfig = game_config(_, _, _, StartingPlayer), % Otherwise, write who is the starting player based on coin toss
          format("The starting player is: ~w~n", [StartingPlayer])) % Use format to print correct player
@@ -56,17 +56,22 @@ read_configuration(GameConfig) :-
 
 % Game cycle, this is the main loop
 game_cycle(GameState) :-
-    (game_over(GameState, Winner) -> % When we have game over, print who is the winner
-        format("Game over! The winner is: ~w~n", [Winner]) 
-        ;
-        current_player(GameState, CurrentPlayer), % Extract current player
-        display_game(GameState), % Display the game (display.pl)
-        valid_moves(GameState, Moves), % Extract the valid moves (moves.pl)       
-        display_moves(Moves), % Display the moves (display.pl)
-        choose_move(Moves, ChosenMove), % Choose the next move and store it in ChosenMove
-        move(GameState, ChosenMove, NewGameState), % Apply the chosen move (moves.pl)
-        write('Move executed successfully.'), nl, % Print out success
-        game_cycle(NewGameState) % Recursive call
+    (game_over(GameState, Winner) -> % When we have game over
+        (
+            format("Game over! The winner is: ~w~n", [Winner]), % Print winner
+            play % Start game again
+        )
+        ; % No winner
+        (
+            current_player(GameState, CurrentPlayer), % Extract current player
+            display_game(GameState), % Display the game (display.pl)
+            valid_moves(GameState, Moves), % Extract the valid moves (moves.pl) 
+            display_moves(Moves), % Display the moves (display.pl) 
+            choose_move(GameState, Moves, ChosenMove), % Choose the next move and store it in ChosenMove 
+            move(GameState, ChosenMove, NewGameState), % Apply the chosen move (moves.pl) 
+            write('Move executed successfully.'), nl, % Print out success 
+            game_cycle(NewGameState) % Recursive call 
+        )
     ).
 
 % Extract the current player from the game state
@@ -76,12 +81,12 @@ current_player(state(_, _, CurrentPlayer, _), CurrentPlayer).
 next_player(player1, player2).
 next_player(player2, player1).
 
-% Allow the player to choose a move from the list of valid moves
-choose_move(Moves, ChosenMove) :-
-    write('Enter the number of the move you want to make: '), nl, % Write instruction
-    read(Index), % Read the index from the player
-    nth1(Index, Moves, ChosenMove), % Based on the index chosen from the possible moves, match it to ChosenMove
-    !. % No backtrack once we find the move                                     
-choose_move(Moves, ChosenMove) :-
-    write('Invalid choice. Please try again.'), nl, % No match was made, print error
-    choose_move(Moves, ChosenMove). % Recursive call for the function
+% Choose move based on player type
+choose_move(GameState, Moves, ChosenMove) :-
+    current_player(GameState, CurrentPlayer), % Get the current player
+    player_type(GameState, PlayerType), % Get the player type
+    choose_move(GameState, Moves, PlayerType, ChosenMove). % Based on those two variables, get the chosen move
+
+% Get the player type based on whose turn it is
+player_type(state(_, game_config(P1Type, _, _, _), player1, _), P1Type).
+player_type(state(_, game_config(_, P2Type, _, _), player2, _), P2Type).
