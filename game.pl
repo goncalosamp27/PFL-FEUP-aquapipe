@@ -63,7 +63,6 @@ game_cycle(GameState) :-
         )
         ; % No winner
         (
-            current_player(GameState, CurrentPlayer), % Extract current player
             display_game(GameState), % Display the game (display.pl)
             valid_moves(GameState, Moves), % Extract the valid moves (moves.pl) 
             display_moves(Moves), % Display the moves (display.pl) 
@@ -77,6 +76,10 @@ game_cycle(GameState) :-
 % Extract the current player from the game state
 current_player(state(_, _, CurrentPlayer, _), CurrentPlayer).
 
+% Get the player type based on whose turn it is
+player_type(state(_, game_config(P1Type, _, _, _), _, _), player1, P1Type).
+player_type(state(_, game_config(_, P2Type, _, _), _, _), player2, P2Type).
+
 % next_player(+CurrentPlayer, -NextPlayer), this is basically a flip
 next_player(player1, player2).
 next_player(player2, player1).
@@ -84,9 +87,5 @@ next_player(player2, player1).
 % Choose move based on player type
 choose_move(GameState, Moves, ChosenMove) :-
     current_player(GameState, CurrentPlayer), % Get the current player
-    player_type(GameState, PlayerType), % Get the player type
+    player_type(GameState, CurrentPlayer, PlayerType), % Get the player type
     choose_move(GameState, Moves, PlayerType, ChosenMove). % Based on those two variables, get the chosen move
-
-% Get the player type based on whose turn it is
-player_type(state(_, game_config(P1Type, _, _, _), player1, _), P1Type).
-player_type(state(_, game_config(_, P2Type, _, _), player2, _), P2Type).
