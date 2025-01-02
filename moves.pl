@@ -8,41 +8,80 @@ has_max_pieces(Size, Progress) :-
 
 % Generate all valid moves for the current player
 valid_moves(state(Board, _, CurrentPlayer, progress(Player1Progress, Player2Progress)), Moves) :-
-    % Unify the current player and his progress with the appropriate turn
-    (CurrentPlayer = player1 -> CurrentProgress = Player1Progress
-    ; CurrentProgress = Player2Progress),
-    
-    % Find all place moves
-    findall([place, X, Y, Size], % Template for place (place, coordinates, piece size)
-            (member(cell(X, Y, Slots), Board), % Must be a cell in the board
-             member(slot(Size, empty), Slots), % Must be an empty slot
-             player_color(CurrentPlayer, PlayerColor), % Get the color based on player
-             valid_place(Size, PlayerColor), % Checks for appropriate size and color
-             \+ has_max_pieces(Size, CurrentProgress)), % Ensure the player hasn't reached the maximum number of pieces of this size
-            PlaceMoves), % Store in PlaceMoves
+    % Determine the current player's progress
+    get_current_progress(CurrentPlayer, Player1Progress, Player2Progress, CurrentProgress),
 
-    findall([move, X1, Y1, Size, X2, Y2], % Template for move (move, source coordinates, piece size, destination coordinates)
-            (member(cell(X1, Y1, Slots1), Board),
-             player_color(CurrentPlayer, PlayerColor), % Match the color to player
-             member(slot(Size, PlayerColor), Slots1), % Match the slot inside the cell to appropriate color and size
-             has_max_pieces(Size, CurrentProgress), % Must have max pieces placed already to move
-             member(cell(X2, Y2, Slots2), Board),
-             member(slot(Size, empty), Slots2), % Must be an empty cell with matched size
-             (X1 \= X2; Y1 \= Y2)), % Can't move to the place where it is in
-            MoveMovesWithDuplicates), % Put them all in MoveMoves
+    % Find all possible place moves
+    find_place_moves(Board, CurrentPlayer, CurrentProgress, PlaceMoves),
 
-    sort(MoveMovesWithDuplicates, MoveMoves), % Remove duplicates using sort
+    % Find all possible move moves
+    find_move_moves(Board, CurrentPlayer, CurrentProgress, MoveMovesWithDuplicates),
 
-    append(PlaceMoves, MoveMoves, Moves),
-    Moves \= []. % Ensure there are valid moves
+    % Remove duplicate move moves
+    sort(MoveMovesWithDuplicates, MoveMoves),
+
+    % Combine place and move moves
+    append(PlaceMoves, MoveMoves, CombinedMoves),
+
+    % Ensure there are valid moves
+    CombinedMoves \= [],
+
+    % Unify the combined moves with the output variable
+    Moves = CombinedMoves.
+
+% Predicate to determine the current player's progress
+get_current_progress(player1, Player1Progress, _Player2Progress, Player1Progress).
+get_current_progress(player2, _Player1Progress, Player2Progress, Player2Progress).
+
+% Predicate to find all possible place moves
+find_place_moves(Board, CurrentPlayer, CurrentProgress, PlaceMoves) :-
+    findall(
+        [place, X, Y, Size], % Template for place move
+        (
+            member(cell(X, Y, Slots), Board),                  % Must be a cell in the board
+            member(slot(Size, empty), Slots),                  % Must be an empty slot
+            player_color(CurrentPlayer, PlayerColor),          % Get the color based on player
+            valid_place(Size, PlayerColor),                    % Check for appropriate size and color
+            \+ has_max_pieces(Size, CurrentProgress)           % Ensure the player hasn't reached the max pieces of this size
+        ),
+        PlaceMoves
+    ).
+
+% Predicate to find all possible move moves
+find_move_moves(Board, CurrentPlayer, CurrentProgress, MoveMoves) :-
+    findall(
+        [move, X1, Y1, Size, X2, Y2], % Template for move
+        (
+            member(cell(X1, Y1, Slots1), Board),                  % Source cell
+            player_color(CurrentPlayer, PlayerColor),             % Get the color based on player
+            member(slot(Size, PlayerColor), Slots1),              % Source slot with correct size and color
+            has_max_pieces(Size, CurrentProgress),                % Must have max pieces placed to move
+            member(cell(X2, Y2, Slots2), Board),                  % Destination cell
+            member(slot(Size, empty), Slots2),                     % Destination slot must be empty and same size
+            (X1 \= X2 ; Y1 \= Y2)                                 % Destination must be different from source
+        ),
+        MoveMovesWithDuplicates
+    ),
+    % Remove duplicate move moves
+    sort(MoveMovesWithDuplicates, MoveMoves).
 
 % Execute move and validate it's legal
 move(GameState, Move, NewGameState) :-
-    valid_moves(GameState, ValidMoves), % Get the valid moves
-    member(Move, ValidMoves), % See if the move is part of the valid moves
-    % Depending on place vs move, call the correct predicate
-    (Move = [place|_] -> execute_place_move(GameState, Move, NewGameState)
-    ; Move = [move|_] -> execute_move_piece(GameState, Move, NewGameState)).
+    valid_moves(GameState, ValidMoves),       % Get the valid moves
+    member(Move, ValidMoves),                 % See if the move is part of the valid moves
+    execute_move_based_on_type(GameState, Move, NewGameState).
+
+% Predicate to execute the move based on its type
+execute_move_based_on_type(GameState, [place | PlaceArgs], NewGameState) :-
+    execute_place_move(GameState, [place | PlaceArgs], NewGameState).
+
+execute_move_based_on_type(GameState, [move | MoveArgs], NewGameState) :-
+    execute_move_piece(GameState, [move | MoveArgs], NewGameState).
+
+% Optional: Handle unexpected move types gracefully
+execute_move_based_on_type(_, Move, _) :-
+    write('Error: Unknown move type encountered: '), write(Move), nl,
+    fail.
 
 % Execute place move, the state after is the last argument of the predicate
 execute_place_move(state(Board, Config, CurrentPlayer, PlayerProgress), [place, X, Y, Size], state(NewBoard, Config, NextPlayer, NewProgress)) :-

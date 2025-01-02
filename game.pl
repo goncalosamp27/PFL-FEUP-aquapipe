@@ -42,36 +42,55 @@ coin_toss(Player) :-
     random(RandomFloat),
     (RandomFloat < 0.5 -> Player = player1; Player = player2).
 
-% Read the configuration
+% Main predicate to read and process the game configuration
 read_configuration(GameConfig) :-
-    read(Option), % Reads the input and stores it in Option variable
-    (configure_game(Option, GameConfig) -> % If there is a valid game configuration unification
-        (GameConfig = quit -> write('Goodbye!'), nl, halt; % When GameConfig is quit, print 'Goodbye!' and quit the game
-         GameConfig = game_config(_, _, _, StartingPlayer), % Otherwise, write who is the starting player based on coin toss
-         format("The starting player is: ~w~n", [StartingPlayer])) % Use format to print correct player
-         ;
-        write('Invalid option, please try again.'), nl, % In case no valid configuration was chosen, print the error
-        read_configuration(GameConfig) % And try again
-    ).
+    read(Option),
+    configure_game_option(Option, GameConfig).
 
-% Game cycle, this is the main loop
+% Handle the case where the option leads to a valid game configuration
+configure_game_option(Option, GameConfig) :-
+    configure_game(Option, GameConfig),
+    process_game_config(GameConfig).
+
+% Handle the case where the option is invalid
+configure_game_option(_, _) :-
+    write('Invalid option, please try again.'), nl,
+    read_configuration(_).
+
+% Process the game configuration based on its type
+process_game_config(quit) :-
+    write('Goodbye!'), nl,
+    halt.
+process_game_config(game_config(_, _, _, StartingPlayer)) :-
+    format("The starting player is: ~w~n", [StartingPlayer]).
+
+% Main predicate to initiate the game cycle
 game_cycle(GameState) :-
-    (game_over(GameState, Winner) -> % When we have game over
-        (
-            format("Game over! The winner is: ~w~n", [Winner]), % Print winner
-            play % Start game again
-        )
-        ; % No winner
-        (
-            display_game(GameState), % Display the game (display.pl)
-            valid_moves(GameState, Moves), % Extract the valid moves (moves.pl) 
-            display_moves(Moves), % Display the moves (display.pl) 
-            choose_move(GameState, Moves, ChosenMove), % Choose the next move and store it in ChosenMove 
-            move(GameState, ChosenMove, NewGameState), % Apply the chosen move (moves.pl) 
-            write('Move executed successfully.'), nl, % Print out success 
-            game_cycle(NewGameState) % Recursive call 
-        )
-    ).
+    check_game_over(GameState, Outcome),
+    handle_outcome(Outcome, GameState).
+
+% Predicate to check if the game is over and determine the outcome
+check_game_over(GameState, outcome(over, Winner)) :-
+    game_over(GameState, Winner), !.
+check_game_over(_, outcome(ongoing, _)).
+
+% Predicate to handle the outcome of the game
+handle_outcome(outcome(over, Winner), _) :-
+    format("Game over! The winner is: ~w~n", [Winner]),
+    play.
+handle_outcome(outcome(ongoing, _), GameState) :-
+    display_game(GameState),
+    valid_moves(GameState, Moves),
+    display_moves(Moves),
+    choose_move(GameState, Moves, ChosenMove),
+    execute_move(GameState, ChosenMove, NewGameState),
+    write('Move executed successfully.'), nl,
+    game_cycle(NewGameState).
+
+% Helper predicate to execute the chosen move and handle the new game state
+execute_move(GameState, ChosenMove, NewGameState) :-
+    move(GameState, ChosenMove, NewGameState).
+
 
 % Extract the current player from the game state
 current_player(state(_, _, CurrentPlayer, _), CurrentPlayer).

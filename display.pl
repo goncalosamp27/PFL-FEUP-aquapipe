@@ -50,33 +50,37 @@ slot_visual(red, 'R').     % Player 2 pieces are displayed as 'R';
 display_moves([]) :-
     write('No moves are available.'), nl.
 
+% Main predicate to display all moves
 display_moves(Moves) :-
-    % Debug: Display all moves
-
-    % Separate the moves into "place" and "move" categories;
+    % Separate the moves into "place" and "move" categories
     include(is_place_move, Moves, PlaceMoves),
     include(is_move_move, Moves, MoveMoves),
 
-    % Debug: Display separated moves;
-
-    % Display "place" moves;
-    (PlaceMoves \= [] ->
-        (write('Place a New Piece - Moves:'), nl,
-         display_moves_list(PlaceMoves, 1, NextIndex))
-    ;
-        (write('You can not place any more pieces.'), nl,
-         NextIndex = 1)
-    ),
+    % Display "place" moves
+    display_place_moves(PlaceMoves, 1, NextIndex),
 
     write(''), nl,
-    % Display "move" moves;
-    (MoveMoves \= [] ->
-        (write('Move an existing Piece Moves:'), nl,
-         display_moves_list(MoveMoves, NextIndex, _))
-    ;
-        write('You can not move any pieces.'), nl
-    ).
 
+    % Display "move" moves
+    display_move_moves(MoveMoves, NextIndex).
+
+% Predicate to display place moves
+display_place_moves(PlaceMoves, CurrentIndex, NextIndex) :-
+    PlaceMoves \= [],
+    write('Place a New Piece - Moves:'), nl,
+    display_moves_list(PlaceMoves, CurrentIndex, NextIndex).
+
+display_place_moves([], 1, 1) :-
+    write('You can not place any more pieces.'), nl.
+
+% Predicate to display move moves
+display_move_moves(MoveMoves, CurrentIndex) :-
+    MoveMoves \= [],
+    write('Move an existing Piece - Moves:'), nl,
+    display_moves_list(MoveMoves, CurrentIndex, _).
+
+display_move_moves([], _) :-
+    write('You can not move any pieces.'), nl.
 
 % Check if a move is a "place" move
 is_place_move([place, _, _, _]).

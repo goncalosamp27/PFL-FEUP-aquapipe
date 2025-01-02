@@ -24,12 +24,14 @@ has_piece(Board, Piece) :-
     member(cell(_, _, Slots), Board),   % Iterate through all cells on the board;
     member(Piece, Slots).               % Check if the specific piece is in the slots;
 
-% Check if the game is over
-game_over(state(Board, _, CurrentPlayer, _), Winner) :-
-    % Check for a win in any direction
-    (check_win(Board, blue) -> player_color(Winner, blue)
-    ; check_win(Board, red) -> player_color(Winner, red)
-    ; false).
+% Check if the game is over by determining if any player has won
+game_over(state(Board, _, _, _), Winner) :-
+    check_win(Board, blue),
+    player_color(Winner, blue).
+
+game_over(state(Board, _, _, _), Winner) :-
+    check_win(Board, red),
+    player_color(Winner, red).
 
 % Check for a win in any direction and any size
 check_win(Board, Color) :-
