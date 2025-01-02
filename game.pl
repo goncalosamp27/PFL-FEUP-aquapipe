@@ -1,5 +1,5 @@
-% game.pl;
-% Displays the game menu / Reads the configuration / Starts the game loop;
+% game.pl
+% Displays the game menu / Reads the configuration / Starts the game loop
 
 % Include random module for random number generation predicates, between for numeric ranges and lists to manipulate lists
 :- use_module(library(random)).
@@ -40,7 +40,13 @@ configure_game(5, quit).
 % Performs coin toss to define who is the starting player
 coin_toss(Player) :-
     random(RandomFloat),
-    (RandomFloat < 0.5 -> Player = player1; Player = player2).
+    RandomFloat < 0.5, 
+    Player = player1.
+
+coin_toss(Player) :-
+    random(RandomFloat),
+    RandomFloat >= 0.5, 
+    Player = player2.
 
 % Main predicate to read and process the game configuration
 read_configuration(GameConfig) :-
@@ -59,7 +65,7 @@ configure_game_option(_, _) :-
 
 % Process the game configuration based on its type
 process_game_config(quit) :-
-    write('Goodbye!'), nl,
+    write('Goodbye, Thanks for playing Aqua Pipe!'), nl,
     halt.
 process_game_config(game_config(_, _, _, StartingPlayer)) :-
     format("The starting player is: ~w~n", [StartingPlayer]).

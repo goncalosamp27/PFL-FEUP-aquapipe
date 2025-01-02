@@ -3,7 +3,6 @@
 
 % Human Player: Prompts user for move
 choose_move(_, Moves, human, ChosenMove) :-
-    display_moves_with_indices(Moves),
     write('Enter the number of the move you want to make: '), nl,
     read(Index),
     ( 

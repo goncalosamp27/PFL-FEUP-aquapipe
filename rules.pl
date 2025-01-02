@@ -1,3 +1,6 @@
+% rules.pl
+% defines winning conditions and verifies if some movements are allowed according to the rules of the game.
+
 % Validate a placement
 valid_place(small, blue).
 valid_place(medium, blue).
@@ -14,15 +17,15 @@ can_move_pieces(Player, Board) :-
         Sizes),
     subset([small, medium, large], Sizes).            % Check if all sizes are present
 
-subset([], _). % An empty list is a subset of any list;
+subset([], _). % An empty list is a subset of any list
 subset([H|T], List) :-
-    member(H, List), % Check if H is in List;
-    subset(T, List). % Recursive call for the rest of the elements;
+    member(H, List), % Check if H is in List
+    subset(T, List). % Recursive call for the rest of the elements
 
 % Check if a specific piece exists on the board
 has_piece(Board, Piece) :-
-    member(cell(_, _, Slots), Board),   % Iterate through all cells on the board;
-    member(Piece, Slots).               % Check if the specific piece is in the slots;
+    member(cell(_, _, Slots), Board),   % Iterate through all cells on the board
+    member(Piece, Slots).               % Check if the specific piece is in the slots
 
 % Check if the game is over by determining if any player has won
 game_over(state(Board, _, _, _), Winner) :-

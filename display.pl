@@ -1,10 +1,10 @@
 % display.pl
 
-group_rows([], _, []).                    % Base case: If the board is empty, there are no rows;
+group_rows([], _, []).                    % Base case: If the board is empty, there are no rows
 group_rows(Board, RowSize, [Row|Rows]) :-
-    length(Row, RowSize),                 % Get the row size;
-    append(Row, Rest, Board),             % Split the board into the current row and the rest;
-    group_rows(Rest, RowSize, Rows).      % Recur for the remaining cells;
+    length(Row, RowSize),                 % Get the row size
+    append(Row, Rest, Board),             % Split the board into the current row and the rest
+    group_rows(Rest, RowSize, Rows).      % Recur for the remaining cells
 
 % Display the entire game state
 display_game(state(Board, _, CurrentPlayer, _)) :-
@@ -20,33 +20,33 @@ display_board(Board) :-
     group_rows(Board, 3, Rows), % Group cells into rows of 3
     process_rows(Rows).
 
-% process each row (adding a separator);
-process_rows([]).                                                   % Base case: No more rows to process;
+% process each row (adding a separator)
+process_rows([]).                                                   % Base case: No more rows to process
 process_rows([Row|Rest]) :-
-    display_row(Row),                                               % Display the current row;
-    write('+-----------+-----------+-----------+'), nl, % Print separator;
-    process_rows(Rest).                                             % Recur for the remaining rows;
+    display_row(Row),                                               % Display the current row
+    write('+-----------+-----------+-----------+'), nl, % Print separator
+    process_rows(Rest).                                             % Recur for the remaining rows
 
 % Display a single row with all slots.
-display_row([]) :-                                           % End the row with a closing | and a newline (base case);
+display_row([]) :-                                           % End the row with a closing | and a newline (base case)
     write('|'), nl. 
 display_row([cell(_, _, Slots)|Rest]) :-
-    cell_content(Slots, [S, M, L]),                          % Get the content of the slots;
-    format('| [~w, ~w, ~w] ', [S, M, L]),                    % Display the slots;
-    display_row(Rest).                                       % Recur for the remaining cells;
+    cell_content(Slots, [S, M, L]),                          % Get the content of the slots
+    format('| [~w, ~w, ~w] ', [S, M, L]),                    % Display the slots
+    display_row(Rest).                                       % Recur for the remaining cells
 
-% Map the slots to their visual representation;
+% Map the slots to their visual representation
 cell_content([slot(small, State), slot(medium, State2), slot(large, State3)], [S, M, L]) :-
-    slot_visual(State, S),   % Map the state of the small slot;
-    slot_visual(State2, M),  % Map the state of the medium slot;
-    slot_visual(State3, L).  % Map the state of the large slot;
+    slot_visual(State, S),   % Map the state of the small slot
+    slot_visual(State2, M),  % Map the state of the medium slot
+    slot_visual(State3, L).  % Map the state of the large slot
 
-% Map slot states to display characters;
-slot_visual(empty, 'E').   % Empty slots are displayed as 'E';
-slot_visual(blue, 'B').    % Player 1 pieces are displayed as 'B';
-slot_visual(red, 'R').     % Player 2 pieces are displayed as 'R';
+% Map slot states to display characters
+slot_visual(empty, 'E').   % Empty slots are displayed as 'E'
+slot_visual(blue, 'B').    % Player 1 pieces are displayed as 'B'
+slot_visual(red, 'R').     % Player 2 pieces are displayed as 'R'
 
-% Display all valid moves, separating "place" and "move" moves;
+% Display all valid moves, separating "place" and "move" moves
 display_moves([]) :-
     write('No moves are available.'), nl.
 
@@ -91,7 +91,7 @@ is_move_move([move, _, _, _, _, _]).
 % Base case: No more moves to display
 display_moves_list([], Index, Index).
 
-% Recursive case: Display a move with its index;
+% Recursive case: Display a move with its index
 display_moves_list([Move | Rest], Index, FinalIndex) :-
     format("~w: ~w~n", [Index, Move]),
     NextIndex is Index + 1,

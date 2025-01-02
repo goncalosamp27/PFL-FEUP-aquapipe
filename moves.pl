@@ -47,6 +47,12 @@ find_place_moves(Board, CurrentPlayer, CurrentProgress, PlaceMoves) :-
         PlaceMoves
     ).
 
+% auxiliar function that ensures that either x1 is diff from x2 or y1 is diff from y2
+at_least_one_different(X1, Y1, X2, Y2) :- 
+    X1 \= X2, !.
+at_least_one_different(X1, Y1, X2, Y2) :-
+    X1 = X2, Y1 \= Y2.
+
 % Predicate to find all possible move moves
 find_move_moves(Board, CurrentPlayer, CurrentProgress, MoveMoves) :-
     findall(
@@ -57,8 +63,8 @@ find_move_moves(Board, CurrentPlayer, CurrentProgress, MoveMoves) :-
             member(slot(Size, PlayerColor), Slots1),              % Source slot with correct size and color
             has_max_pieces(Size, CurrentProgress),                % Must have max pieces placed to move
             member(cell(X2, Y2, Slots2), Board),                  % Destination cell
-            member(slot(Size, empty), Slots2),                     % Destination slot must be empty and same size
-            (X1 \= X2 ; Y1 \= Y2)                                 % Destination must be different from source
+            member(slot(Size, empty), Slots2),                    % Destination slot must be empty and same size
+            at_least_one_different(X1, Y1, X2, Y2)                % Destination must be different from source
         ),
         MoveMovesWithDuplicates
     ),
