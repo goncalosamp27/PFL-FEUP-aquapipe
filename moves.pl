@@ -87,10 +87,10 @@ move(GameState, Move, NewGameState) :-
 % execute_move_based_on_type(+GameState, +Move, -NewGameState)
 % Predicate to execute the move based on its type
 execute_move_based_on_type(GameState, [place | PlaceArgs], NewGameState) :-
-    execute_place_move(GameState, [place | PlaceArgs], NewGameState).
+    execute_place_move(GameState, [place | PlaceArgs], NewGameState), !. % when found, stop searching
 
 execute_move_based_on_type(GameState, [move | MoveArgs], NewGameState) :-
-    execute_move_piece(GameState, [move | MoveArgs], NewGameState).
+    execute_move_piece(GameState, [move | MoveArgs], NewGameState), !. % when found, stop searching
 
 % Handle unexpected move types gracefully
 execute_move_based_on_type(_, Move, _) :-
