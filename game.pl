@@ -7,14 +7,15 @@
 :- use_module(library(lists)).
 
 % Include the other .pl files
-:- [display, moves, rules, state, ai]. 
+:- [display, moves, rules, state, ai, cleanup]. 
 
 % Entry point of the game
 play :-
     display_menu, % Prints the game menu to the console
     read_configuration(GameConfig), % Reads user input and validates game configuration
     initial_state(GameConfig, GameState), % Sets up the inital state of the game based on configuration
-    game_cycle(GameState). % Starts the main game loop, until game is over
+    game_cycle(GameState), % Starts the main game loop, until game is over
+    clear_data.
 
 % Print the menu
 display_menu :-
