@@ -23,3 +23,4 @@ initialize_player_progress(progress([], [])).
 initial_state(game_config(Player1Type, Player2Type, StartingPlayer), state(Board, game_config(Player1Type, Player2Type, StartingPlayer), StartingPlayer, PlayerProgress)) :-
     initialize_board(Board), % Get the board 
     initialize_player_progress(PlayerProgress). % Get the player progress
+    
