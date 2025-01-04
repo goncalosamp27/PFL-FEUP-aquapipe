@@ -1,11 +1,13 @@
 % moves.pl
 % Handles generating valid moves, executing moves, and updating the game state
 
+% has_max_pieces(+Size, +Progress)
 % Check if a player has already placed 3 pieces of a given size
 has_max_pieces(Size, Progress) :-
     findall(Size, member(Size, Progress), PlacedPieces),
     length(PlacedPieces, 3).
 
+% valid_moves(+GameState, -Moves)
 % Generate all valid moves for the current player
 valid_moves(state(Board, _, CurrentPlayer, progress(Player1Progress, Player2Progress)), Moves) :-
     % Determine the current player's progress
@@ -29,10 +31,12 @@ valid_moves(state(Board, _, CurrentPlayer, progress(Player1Progress, Player2Prog
     % Unify the combined moves with the output variable
     Moves = CombinedMoves.
 
+% get_current_progress(+Player, +Player1Progress, +Player2Progress, -PlayerProgress)
 % Predicate to determine the current player's progress
 get_current_progress(player1, Player1Progress, _Player2Progress, Player1Progress).
 get_current_progress(player2, _Player1Progress, Player2Progress, Player2Progress).
 
+% find_place_moves(+Board, +CurrentMoves, +CurrentProgress, -PlaceMoves)
 % Predicate to find all possible place moves
 find_place_moves(Board, CurrentPlayer, CurrentProgress, PlaceMoves) :-
     findall(
@@ -47,12 +51,14 @@ find_place_moves(Board, CurrentPlayer, CurrentProgress, PlaceMoves) :-
         PlaceMoves
     ).
 
+% at_least_one_different(+X1, +Y1, +X2, +Y2)
 % auxiliar function that ensures that either x1 is diff from x2 or y1 is diff from y2
 at_least_one_different(X1, Y1, X2, Y2) :- 
     X1 \= X2, !.
 at_least_one_different(X1, Y1, X2, Y2) :-
     X1 = X2, Y1 \= Y2.
 
+% find_move_moves(+Board, +CurrentPlayer, +CurrentProgress, -MoveMoves)
 % Predicate to find all possible move moves
 find_move_moves(Board, CurrentPlayer, CurrentProgress, MoveMoves) :-
     findall(
@@ -71,6 +77,7 @@ find_move_moves(Board, CurrentPlayer, CurrentProgress, MoveMoves) :-
     % Remove duplicate move moves
     sort(MoveMovesWithDuplicates, MoveMoves).
 
+% move(+GameState, +Move, -NewGameState)
 % Execute move and validate it's legal
 move(GameState, Move, NewGameState) :-
     valid_moves(GameState, ValidMoves),       % Get the valid moves

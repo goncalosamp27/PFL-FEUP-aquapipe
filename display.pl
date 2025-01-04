@@ -6,6 +6,7 @@ group_rows(Board, RowSize, [Row|Rows]) :-
     append(Row, Rest, Board),             % Split the board into the current row and the rest
     group_rows(Rest, RowSize, Rows).      % Recur for the remaining cells
 
+% display_game(+GameState)
 % Display the entire game state
 display_game(state(Board, _, CurrentPlayer, _)) :-
     write(''), nl,
@@ -13,6 +14,7 @@ display_game(state(Board, _, CurrentPlayer, _)) :-
     display_board(Board),
     format('Player: ~w~n', [CurrentPlayer]), nl.
 
+% display_board(+Board)
 % Display the board as a grid
 display_board(Board) :-
     write('Game Board:'), nl,
@@ -27,6 +29,7 @@ process_rows([Row|Rest]) :-
     write('+-----------+-----------+-----------+'), nl, % Print separator
     process_rows(Rest).                                             % Recur for the remaining rows
 
+% display_row(+Row)
 % Display a single row with all slots.
 display_row([]) :-                                           % End the row with a closing | and a newline (base case)
     write('|'), nl. 
@@ -35,6 +38,7 @@ display_row([cell(_, _, Slots)|Rest]) :-
     format('| [~w, ~w, ~w] ', [S, M, L]),                    % Display the slots
     display_row(Rest).                                       % Recur for the remaining cells
 
+% cell_content(+Cell, +VisualArray)
 % Map the slots to their visual representation
 cell_content([slot(small, State), slot(medium, State2), slot(large, State3)], [S, M, L]) :-
     slot_visual(State, S),   % Map the state of the small slot
@@ -46,6 +50,7 @@ slot_visual(empty, 'E').   % Empty slots are displayed as 'E'
 slot_visual(blue, 'B').    % Player 1 pieces are displayed as 'B'
 slot_visual(red, 'R').     % Player 2 pieces are displayed as 'R'
 
+% display_moves(+Moves)
 % Display all valid moves, separating "place" and "move" moves
 display_moves([]) :-
     write('No moves are available.'), nl.
@@ -96,5 +101,3 @@ display_moves_list([Move | Rest], Index, FinalIndex) :-
     format("~w: ~w~n", [Index, Move]),
     NextIndex is Index + 1,
     display_moves_list(Rest, NextIndex, FinalIndex).
-
-
