@@ -40,35 +40,26 @@ choose_move(GameState, Moves, strong_computer, Move) :-
        write('No special moves found, choosing random move.'), nl
     ).
 
-% find_winning_move(+GameState, +Moves, -Move)
+% find_winning_move(+GameState, +Moves, -WinMove)
 % Check if there's a winning move
-find_winning_move(GameState, Moves, Move) :-
+find_winning_move(GameState, Moves, WinMove) :-
     current_player(GameState, CurrentPlayer),
-    member(Move, Moves),
+    member(WinMove, Moves),
     % Try the move
-    move(GameState, Move, NewState),
+    move(GameState, WinMove, NewState),
     % Check if it leads to a win
     game_over(NewState, Winner),
     Winner = CurrentPlayer.
 
-% find_blocking_move(+GameState, +Moves, -Move)
+% find_blocking_move(+GameState, +Moves, -BlockMove)
 % Check if we need to block opponent's winning move
-find_blocking_move(GameState, Moves, Move) :-
-    % Get current player and their opponent
-    current_player(GameState, CurrentPlayer),
-    next_player(CurrentPlayer, Opponent),
+find_blocking_move(state(Board, game_config(Player1Type, Player2Type, CurrentPlayer)), Moves, BlockMove) :-
+    next_player(CurrentPlayer, NextPlayer),
     
-    % Try each possible move
-    member(Move, Moves),
-    move(GameState, Move, AfterMoveState),
-    
-    % Get opponent's possible responses
-    valid_moves(AfterMoveState, OpponentMoves),
-    
-    % Check if NOT playing this move would let opponent win
-    \+ (
-        member(OpponentMove, OpponentMoves),
-        move(AfterMoveState, OpponentMove, FinalState),
-        game_over(FinalState, Winner),
-        Winner = Opponent
-    ).
+    % Try each possible move as if you are in other player turn,
+    member(BlockMove, Moves),
+    move(state(Board, game_config(Player1Type, Player2Type, NextPlayer)), BlockMove, AfterMoveState),
+
+    % Test for a game over in that position for the NextPlayer
+    game_over(AfterMoveState, Winner),
+    Winner = NextPlayer.

@@ -91,7 +91,8 @@ check_game_over(_, outcome(ongoing, _)).
 
 % handle_outcome(+Outcome, -GameState)
 % Predicate to handle the outcome of the game
-handle_outcome(outcome(over, Winner), _) :-
+handle_outcome(outcome(over, Winner), GameState) :-
+    display_game(GameState),
     format("Game over! The winner is: ~w~n", [Winner]),
     play.
 handle_outcome(outcome(ongoing, _), GameState) :-

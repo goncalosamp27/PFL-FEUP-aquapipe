@@ -1,5 +1,6 @@
 % display.pl
 
+% group_rows(+Board, +RowSize, -Rows)
 group_rows([], _, []).                    % Base case: If the board is empty, there are no rows
 group_rows(Board, RowSize, [Row|Rows]) :-
     length(Row, RowSize),                 % Get the row size
@@ -22,6 +23,7 @@ display_board(Board) :-
     group_rows(Board, 3, Rows), % Group cells into rows of 3
     process_rows(Rows).
 
+% process_rows(+Rows)
 % process each row (adding a separator)
 process_rows([]).                                                   % Base case: No more rows to process
 process_rows([Row|Rest]) :-
@@ -69,6 +71,7 @@ display_moves(Moves) :-
     % Display "move" moves
     display_move_moves(MoveMoves, NextIndex).
 
+% display_place_moves(+PlaceMoves, +CurrentIndex, +NextIndex)
 % Predicate to display place moves
 display_place_moves(PlaceMoves, CurrentIndex, NextIndex) :-
     PlaceMoves \= [],
@@ -78,6 +81,7 @@ display_place_moves(PlaceMoves, CurrentIndex, NextIndex) :-
 display_place_moves([], 1, 1) :-
     write('You can not place any more pieces.'), nl.
 
+% display_move_moves(+MoveMoves, +CurrentIndex)
 % Predicate to display move moves
 display_move_moves(MoveMoves, CurrentIndex) :-
     MoveMoves \= [],
@@ -87,12 +91,15 @@ display_move_moves(MoveMoves, CurrentIndex) :-
 display_move_moves([], _) :-
     write('You can not move any pieces.'), nl.
 
+% is_place_move(+Move)
 % Check if a move is a "place" move
 is_place_move([place, _, _, _]).
 
+% is_move_move(+Move)
 % Check if a move is a "move" move
 is_move_move([move, _, _, _, _, _]).
 
+% display_moves_list(+Move, +Index, +FinalIndex)
 % Base case: No more moves to display
 display_moves_list([], Index, Index).
 

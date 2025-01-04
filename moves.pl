@@ -53,7 +53,7 @@ find_place_moves(Board, CurrentPlayer, CurrentProgress, PlaceMoves) :-
 
 % at_least_one_different(+X1, +Y1, +X2, +Y2)
 % auxiliar function that ensures that either x1 is diff from x2 or y1 is diff from y2
-at_least_one_different(X1, Y1, X2, Y2) :- 
+at_least_one_different(X1, _, X2, _) :- 
     X1 \= X2, !.
 at_least_one_different(X1, Y1, X2, Y2) :-
     X1 = X2, Y1 \= Y2.
@@ -84,6 +84,7 @@ move(GameState, Move, NewGameState) :-
     member(Move, ValidMoves),                 % See if the move is part of the valid moves
     execute_move_based_on_type(GameState, Move, NewGameState).
 
+% execute_move_based_on_type(+GameState, +Move, -NewGameState)
 % Predicate to execute the move based on its type
 execute_move_based_on_type(GameState, [place | PlaceArgs], NewGameState) :-
     execute_place_move(GameState, [place | PlaceArgs], NewGameState).
@@ -91,11 +92,12 @@ execute_move_based_on_type(GameState, [place | PlaceArgs], NewGameState) :-
 execute_move_based_on_type(GameState, [move | MoveArgs], NewGameState) :-
     execute_move_piece(GameState, [move | MoveArgs], NewGameState).
 
-% Optional: Handle unexpected move types gracefully
+% Handle unexpected move types gracefully
 execute_move_based_on_type(_, Move, _) :-
     write('Error: Unknown move type encountered: '), write(Move), nl,
     fail.
 
+% execute_place_move(+GameState, +PlaceMove, -NewGameState)
 % Execute place move, the state after is the last argument of the predicate
 execute_place_move(state(Board, Config, CurrentPlayer, PlayerProgress), [place, X, Y, Size], state(NewBoard, Config, NextPlayer, NewProgress)) :-
     player_color(CurrentPlayer, Color), % Get the color based on current player
@@ -103,6 +105,7 @@ execute_place_move(state(Board, Config, CurrentPlayer, PlayerProgress), [place, 
     update_progress(CurrentPlayer, Size, PlayerProgress, NewProgress), % Update the Progress list
     next_player(CurrentPlayer, NextPlayer). % Switch player
 
+% execute_move_piece(+GameState, +MovePieceMove, -NewGameState)
 % Execute move piece, same as place but with different middle argument for a more complex operation
 execute_move_piece(state(Board, Config, CurrentPlayer, PlayerProgress), [move, X1, Y1, Size, X2, Y2], state(NewBoard, Config, NextPlayer, PlayerProgress)) :-
     player_color(CurrentPlayer, Color), % Retrieve the color
@@ -111,29 +114,39 @@ execute_move_piece(state(Board, Config, CurrentPlayer, PlayerProgress), [move, X
     maplist(update_cell_target(X2, Y2, Size, Color), TempBoard, NewBoard),
     next_player(CurrentPlayer, NextPlayer).
 
+% replace_cell(+Board, +X, +Y, +Size, +Color, -NewBoard)
 % Cell update helpers
+% Replace a cell Size with new Color if it matches the position
 replace_cell(Board, X, Y, Size, Color, NewBoard) :-
     maplist(update_cell(X, Y, Size, Color), Board, NewBoard).
 
+% update_cell(+X, +Y, +Size, +Color, +Cell, -UpdatedCell)
+% If match is found, update the cell, and stop, otherwise, leave unchanged
 update_cell(X, Y, Size, Color, cell(X, Y, Slots), cell(X, Y, UpdatedSlots)) :-
     update_slot_list(Slots, Size, Color, UpdatedSlots), !.
 update_cell(_, _, _, _, Cell, Cell).
 
+% update_cell_source(+X, +Y, +Size, +Color, +Cell, -NewCell)
+% Update a cell Size to empty 
 update_cell_source(X, Y, Size, cell(X, Y, Slots), cell(X, Y, UpdatedSlots)) :-
     update_slot_list(Slots, Size, empty, UpdatedSlots), !.
 update_cell_source(_, _, _, Cell, Cell).
 
+% update_cell_target(+X, +Y, +Size, +Color, +Cell, -NewCell)
+% Update a target cell Size to a Color
 update_cell_target(X, Y, Size, Color, cell(X, Y, Slots), cell(X, Y, UpdatedSlots)) :-
     update_slot_list(Slots, Size, Color, UpdatedSlots), !.
 update_cell_target(_, _, _, _, Cell, Cell).
 
-% Update slots in a cell
+% update_slot_list(+Slots, +Size, +NewState, -UpdatedSlots)
+% Update slot in a cell based on the Size
 update_slot_list([slot(Size, _)|Rest], Size, NewState, [slot(Size, NewState)|Rest]) :- !.
 update_slot_list([Slot|Rest], Size, NewState, [Slot|UpdatedRest]) :-
     update_slot_list(Rest, Size, NewState, UpdatedRest).
 update_slot_list([], _, _, []).
 
-% Update player progress
+% update_progress(+Player, +Size, -NewProgress)
+% Update player progress based on move given
 update_progress(player1, Size, progress(P1Progress, P2Progress),
                progress([Size|P1Progress], P2Progress)).
 update_progress(player2, Size, progress(P1Progress, P2Progress),

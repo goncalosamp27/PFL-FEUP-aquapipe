@@ -1,6 +1,7 @@
 % state.pl
 % Defines the initial game state including board, configuration, player playing and the progress of both players
 
+% initialize_board(-Board)
 % Initialize the board as a 3x3 grid with three empty slots in each cell (small, medium, and large slots)
 % Generates all cells from (1,1) to (3,3) with 3 empty slots in each
 initialize_board(Board) :-
@@ -10,9 +11,11 @@ initialize_board(Board) :-
         Board % Instantiated into Board variable
     ).
 
+% initialize_player_progress(-Progress)
 % Initialize player progress for both players (empty since they have not put any pieces yet)
 initialize_player_progress(progress([], [])).
 
+% initialize_state(+GameConfig, -GameState)
 % Create the initial game state:
 % - create the configuration (e.g., H/H, H/PC, etc.)
 % - choose the player for the current turn
